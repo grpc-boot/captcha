@@ -6,20 +6,15 @@ import (
 	"math/rand"
 	"os"
 	"testing"
-	"time"
 )
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
-
 func TestSlide_Create(t *testing.T) {
-	s := NewSlide()
+	s := NewSlide("")
 	s.Create()
 }
 
 func TestSlide_CreateShape(t *testing.T) {
-	s := NewSlide()
+	s := NewSlide("")
 
 	img, _, _ := openImg("./shan.png")
 	rgbaImg := convertRGBA(img)
@@ -34,4 +29,9 @@ func TestSlide_CreateShape(t *testing.T) {
 		data, _ := toPng(thumbImg)
 		_ = os.WriteFile(fmt.Sprintf("%d.png", i), data, 0766)
 	}
+}
+
+func TestScanFiles(t *testing.T) {
+	list := scanFiles("./", "png", false)
+	t.Logf("list: %v", list)
 }

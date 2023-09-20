@@ -7,10 +7,11 @@ import (
 	"image"
 	"image/draw"
 	"image/jpeg"
-	_ "image/jpeg"
 	"image/png"
-	_ "image/png"
+	"io/fs"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 const (
@@ -153,6 +154,23 @@ func saveJpg(fileName string, img image.Image, quality int) (err error) {
 	return b.Flush()
 }
 
-func cutShap(img image.Image) {
+func scanFiles(dir, extension string, recursion bool) []string {
+	pathList := make([]string, 0)
+	_ = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
 
+		if d.IsDir() && !recursion && path != dir {
+			return filepath.SkipDir
+		}
+
+		if strings.HasSuffix(d.Name(), extension) {
+			pathList = append(pathList, path)
+		}
+
+		return err
+	})
+
+	return pathList
 }

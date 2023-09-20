@@ -1,24 +1,45 @@
 package captcha
 
 import (
+	"embed"
 	"fmt"
 	"image"
 	"image/draw"
 	"math/rand"
 	"os"
+	"strings"
+)
+
+var (
+	//go:embed masks
+	f embed.FS
 )
 
 type Slide struct {
 	maskList []*image.RGBA
 }
 
-func NewSlide() *Slide {
+func NewSlide(maskDir string) *Slide {
 	s := &Slide{
 		maskList: make([]*image.RGBA, 0, 32),
 	}
 
-	for i := 1; i < 10; i++ {
-		sp, _, _ := openImg(fmt.Sprintf("%d.png", i))
+	var files = make([]string, 0)
+	if maskDir != "" {
+		files = scanFiles(maskDir, "png", false)
+	}
+
+	if len(files) < 1 {
+		fsList, _ := f.ReadDir("masks")
+		for _, file := range fsList {
+			if strings.HasSuffix(file.Name(), "png") {
+				files = append(files, "masks/"+file.Name())
+			}
+		}
+	}
+
+	for _, fileName := range files {
+		sp, _, _ := openImg(fileName)
 		s.maskList = append(s.maskList, convertRGBA(sp))
 	}
 
