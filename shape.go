@@ -3,12 +3,12 @@ package captcha
 import (
 	"image"
 	"image/color"
+	"math"
 )
 
 type shape struct {
-	p    image.Point
-	maxR int
-	minR int
+	p image.Point
+	r int
 }
 
 func (s *shape) ColorModel() color.Model {
@@ -16,30 +16,27 @@ func (s *shape) ColorModel() color.Model {
 }
 
 func (s *shape) Bounds() image.Rectangle {
-	return image.Rect(s.p.X-s.maxR, s.p.Y-s.maxR, s.p.X+s.maxR, s.p.Y+s.maxR)
+	return image.Rect(s.p.X-s.r, s.p.Y-s.r, s.p.X+s.r, s.p.Y+s.r)
 }
 
 func (s *shape) At(x, y int) color.Color {
 	var (
-		xx, yy   = x - s.p.X, y - s.p.Y
-		value    = xx*xx + yy*yy
-		minValue = s.minR * s.minR
-		maxValue = s.maxR * s.maxR
+		xx, yy     = x - s.p.X, y - s.p.Y
+		maxValue   = s.r * s.r
+		limitValue = maxValue / 9
 	)
 
-	if s.minR > 0 && value < minValue {
+	leftX := x - s.p.X + s.r
+	leftY := y - s.p.Y - s.r/4
+	topY := y - s.p.Y + s.r/3
+
+	if xx < 0 && leftX*leftX+leftY*leftY < limitValue {
 		return color.Alpha{}
 	}
 
-	if value < maxValue-5 {
-		return color.Gray{
-			Y: 1,
-		}
+	if yy < -int(math.Round(float64(s.r)/3)) && xx*xx+topY*topY > limitValue {
+		return color.Alpha{}
 	}
 
-	if value < maxValue {
-		return color.Alpha{A: 255}
-	}
-
-	return color.Alpha{}
+	return color.Alpha{A: 255}
 }
