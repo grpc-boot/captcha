@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"unsafe"
 )
 
 const (
@@ -157,4 +158,8 @@ func scanFiles(dir string, extensionList ...string) []string {
 	})
 
 	return pathList
+}
+
+func bytes2String(data []byte) string {
+	return *(*string)(unsafe.Pointer(&data))
 }

@@ -7,6 +7,7 @@ import (
 	"image/draw"
 	"math"
 	"math/rand"
+	"strconv"
 	"strings"
 )
 
@@ -119,7 +120,7 @@ func (s *Slide) cutShape(img *image.RGBA, point image.Point, r int, quality int)
 }
 
 // Create generate slide key, x, y, and pictures.
-func (s *Slide) Create() (key string, x, y int, thumb64, b64 []byte) {
+func (s *Slide) Create() (dots map[int]Dot, b64 string, thumb64 string, key string, err error) {
 	var (
 		r        = 50
 		index    = rand.Intn(len(s.backList))
@@ -129,20 +130,49 @@ func (s *Slide) Create() (key string, x, y int, thumb64, b64 []byte) {
 	rgbaImg := image.NewRGBA(indexImg.Bounds())
 	draw.Draw(rgbaImg, rgbaImg.Bounds(), indexImg, indexImg.Bounds().Min, draw.Over)
 
-	x = r + rand.Intn(rgbaImg.Bounds().Dx()-2*r)
-	y = r + rand.Intn(rgbaImg.Bounds().Dy()-2*r)
+	dots = map[int]Dot{
+		0: {
+			Dx: r + rand.Intn(rgbaImg.Bounds().Dx()-2*r),
+			Dy: r + rand.Intn(rgbaImg.Bounds().Dy()-2*r),
+		},
+	}
 
-	key, thumb64, b64 = s.cutShape(rgbaImg, image.Point{X: x, Y: y}, r, s.quality)
+	key, thumb64Bytes, b64Bytes := s.cutShape(rgbaImg, image.Point{X: dots[0].Dx, Y: dots[0].Dy}, r, s.quality)
+
+	b64 = bytes2String(b64Bytes)
+	thumb64 = bytes2String(thumb64Bytes)
+
 	return
 }
 
-// Check 校验是否通过
-func (s *Slide) Check(localX, localY, reqX, reqY int, span int) bool {
+// check 校验是否通过
+func (s *Slide) check(localX, localY, reqX, reqY int, span int) bool {
 	if localY != reqY {
 		return false
 	}
 
 	return math.Abs(float64(localX-reqX)) <= float64(span)
+}
+
+func (s *Slide) Check(dots string, dct map[int]Dot, span int) bool {
+	if len(dct) != 1 {
+		return false
+	}
+
+	point, exists := dct[0]
+	if !exists {
+		return false
+	}
+
+	src := strings.Split(dots, ",")
+	if len(src) != 2 {
+		return false
+	}
+
+	reqX, _ := strconv.Atoi(src[0])
+	reqY, _ := strconv.Atoi(src[1])
+
+	return s.check(point.Dx, point.Dy, reqX, reqY, span)
 }
 
 // CreateCustom generate slide key, x, y, and pictures by custom.
