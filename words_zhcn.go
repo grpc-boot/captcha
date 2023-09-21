@@ -21,8 +21,27 @@ func (wzc *WordsZhCn) Driver() *captcha.Captcha {
 	return wzc.driver
 }
 
-func (wzc *WordsZhCn) Create() (dots map[int]captcha.CharDot, b64 string, thumb64 string, key string, err error) {
-	return wzc.driver.Generate()
+func (wzc *WordsZhCn) Create() (dots map[int]Dot, b64 string, thumb64 string, key string, err error) {
+	var charDots map[int]captcha.CharDot
+
+	charDots, b64, thumb64, key, err = wzc.driver.Generate()
+	if err != nil {
+		return
+	}
+
+	dots = make(map[int]Dot, len(charDots))
+
+	for index, dot := range charDots {
+		dots[index] = Dot{
+			Index:  dot.Index,
+			Dx:     dot.Dx,
+			Dy:     dot.Dy,
+			Width:  dot.Width,
+			Height: dot.Height,
+		}
+	}
+
+	return
 }
 
 func (wzc *WordsZhCn) Check(dots string, dct map[int]Dot, span int) bool {

@@ -122,6 +122,8 @@ func toJpg(img image.Image, quality int) (data []byte, err error) {
 	}
 
 	data = out.Bytes()
+	out.Reset()
+
 	return
 }
 
@@ -133,6 +135,7 @@ func toPng(img image.Image) (data []byte, err error) {
 	}
 
 	data = out.Bytes()
+	out.Reset()
 	return
 }
 
